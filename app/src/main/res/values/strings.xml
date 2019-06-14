@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Quick Notes</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_send_note">Send as Email</string>
     <string name="title_activity_note">Edit Note</string>
 </resources>
