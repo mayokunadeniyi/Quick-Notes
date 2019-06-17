@@ -4,11 +4,19 @@
     tools:context="com.mayokun.quicknotes.Activities.NoteActivity">
     <item
         android:id="@+id/action_cancel"
+        android:icon="@android:drawable/ic_menu_revert"
         android:orderInCategory="100"
-        android:title="@android:string/cancel" />
+        android:title="@android:string/cancel"
+        app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/action_next"
+        android:icon="@android:drawable/ic_media_next"
+        android:orderInCategory="101"
+        android:title="Next"
+        app:showAsAction="ifRoom|withText" />
     <item
         android:id="@+id/action_send_note"
-        android:orderInCategory="101"
+        android:orderInCategory="102"
         android:title="@string/action_send_note"
         app:showAsAction="never" />
 </menu>

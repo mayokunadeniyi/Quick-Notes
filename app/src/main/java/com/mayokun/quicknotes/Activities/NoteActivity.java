@@ -170,9 +170,28 @@ public class NoteActivity extends AppCompatActivity {
         } else if (id == R.id.action_cancel) {
             isCanceling = true;
             finish();
+        } else if (id == R.id.action_next){
+            moveNext();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem menuItem = menu.findItem(R.id.action_next);
+        int indexPosition = DataManager.getInstance().getNotes().size() - 1;
+        menuItem.setEnabled(notePosition < indexPosition);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    private void moveNext() {
+        saveNote();
+        ++notePosition;
+        noteInfo = DataManager.getInstance().getNotes().get(notePosition);
+        saveOriginalNoteValues();
+        displayNotes(spinnerCourses,noteTitle,noteText);
+        invalidateOptionsMenu();
     }
 
     private void sendEmail() {
