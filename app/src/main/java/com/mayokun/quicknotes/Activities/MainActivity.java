@@ -3,6 +3,7 @@ package com.mayokun.quicknotes.Activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -16,8 +17,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 
+import com.mayokun.quicknotes.Adapter.CourseRecyclerViewAdapter;
 import com.mayokun.quicknotes.Adapter.NoteRecyclerViewAdapter;
 import com.mayokun.quicknotes.Data.DataManager;
+import com.mayokun.quicknotes.Model.CourseInfo;
 import com.mayokun.quicknotes.Model.NoteInfo;
 import com.mayokun.quicknotes.R;
 
@@ -27,9 +30,13 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private NoteRecyclerViewAdapter noteRecyclerViewAdapter;
+    private CourseRecyclerViewAdapter courseRecyclerViewAdapter;
     private RecyclerView recyclerView;
     private List<NoteInfo> noteInfoList;
+    private List<CourseInfo> courseInfoList;
     private LinearLayoutManager linearLayoutManager;
+    private GridLayoutManager gridLayoutManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,14 +47,17 @@ public class MainActivity extends AppCompatActivity
 
         FloatingActionButton fab = findViewById(R.id.fab);
         noteInfoList = DataManager.getInstance().getNotes();
+        courseInfoList = DataManager.getInstance().getCourses();
 
 
         recyclerView = (RecyclerView) findViewById(R.id.list_items);
         recyclerView.setHasFixedSize(true);
         linearLayoutManager = new LinearLayoutManager(this);
+        gridLayoutManager = new GridLayoutManager(this, 2);
 
-        noteRecyclerViewAdapter = new NoteRecyclerViewAdapter(this,noteInfoList);
-
+        noteRecyclerViewAdapter = new NoteRecyclerViewAdapter(this, noteInfoList);
+        courseRecyclerViewAdapter = new CourseRecyclerViewAdapter(this, courseInfoList);
+        displayNotes();
 
 
         fab.setOnClickListener(new View.OnClickListener() {
@@ -69,17 +79,26 @@ public class MainActivity extends AppCompatActivity
     private void displayNotes() {
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(noteRecyclerViewAdapter);
+        setMenuItemChecked(R.id.nav_notes);
+    }
 
+    private void displayCourses() {
+        recyclerView.setLayoutManager(gridLayoutManager);
+        recyclerView.setAdapter(courseRecyclerViewAdapter);
+        setMenuItemChecked(R.id.nav_courses);
+    }
+
+    private void setMenuItemChecked(int id) {
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         Menu menu = navigationView.getMenu();
-        menu.findItem(R.id.nav_notes).setChecked(true);
-
+        menu.findItem(id).setChecked(true);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         noteRecyclerViewAdapter.notifyDataSetChanged();
+        courseRecyclerViewAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -123,6 +142,7 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.nav_notes) {
             displayNotes();
         } else if (id == R.id.nav_courses) {
+            displayCourses();
 
         } else if (id == R.id.nav_share) {
 
