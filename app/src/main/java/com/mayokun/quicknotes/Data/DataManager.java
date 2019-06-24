@@ -1,8 +1,14 @@
 package com.mayokun.quicknotes.Data;
 
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
 import com.mayokun.quicknotes.Model.CourseInfo;
 import com.mayokun.quicknotes.Model.ModuleInfo;
 import com.mayokun.quicknotes.Model.NoteInfo;
+import com.mayokun.quicknotes.Utils.Constants;
+import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
+import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,20 +20,77 @@ public class DataManager {
     private List<NoteInfo> mNotes = new ArrayList<>();
 
     public static DataManager getInstance() {
-        if(ourInstance == null) {
+        if (ourInstance == null) {
             ourInstance = new DataManager();
-            ourInstance.initializeCourses();
-            ourInstance.initializeExampleNotes();
+
         }
         return ourInstance;
     }
 
+    public static void loadDataFromDatabase(DataBaseOpenHelper dataBaseOpenHelper) {
+        SQLiteDatabase db = dataBaseOpenHelper.getReadableDatabase();
+
+        final String[] courseColumns = {CourseInfoEntry.COLUMN_COURSE_ID,
+                CourseInfoEntry.COLUMN_COURSE_TITLE};
+        final Cursor courseCursor = db.query(CourseInfoEntry.TABLE_NAME, courseColumns,
+                null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE + " DESC");
+        loadCoursesFromDatabase(courseCursor);
+
+        final String[] noteColumns = {NoteInfoEntry.COLUMN_NOTE_TITLE, NoteInfoEntry.COLUMN_NOTE_TEXT,
+                NoteInfoEntry.COLUMN_COURSE_ID, NoteInfoEntry._ID};
+        String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+        final Cursor noteCursor = db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                null, null, null, null, noteOrderBy);
+        loadNotesFromDatabase(noteCursor);
+
+
+    }
+
+    private static void loadNotesFromDatabase(Cursor cursor) {
+        int noteTitlePosition = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
+        int noteTextPosition = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT);
+        int courseIDPosition = cursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
+        int notePositionID = cursor.getColumnIndex(NoteInfoEntry._ID);
+
+        DataManager dm = getInstance();
+        dm.mNotes.clear();
+
+        while (cursor.moveToNext()) {
+            String courseId = cursor.getString(courseIDPosition);
+            String noteTitle = cursor.getString(noteTitlePosition);
+            String noteText = cursor.getString(noteTextPosition);
+            int id = cursor.getInt(notePositionID);
+
+            CourseInfo courseInfo = dm.getCourse(courseId);
+            NoteInfo noteInfo = new NoteInfo(id, courseInfo, noteTitle, noteText);
+            dm.mNotes.add(noteInfo);
+        }
+        cursor.close();
+    }
+
+    private static void loadCoursesFromDatabase(Cursor cursor) {
+        int courseIDPosition = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_ID);
+        int courseTitlePosition = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_TITLE);
+
+        DataManager dm = getInstance();
+        dm.mCourses.clear();
+
+        while (cursor.moveToNext()) {
+            CourseInfo courseInfo = new CourseInfo(cursor.getString(courseIDPosition),
+                    cursor.getString(courseTitlePosition), null);
+
+            dm.mCourses.add(courseInfo);
+        }
+        cursor.close();
+
+    }
+
     public String getCurrentUserName() {
-        return "Jim Wilson";
+        return "Mayokun Adeniyi";
     }
 
     public String getCurrentUserEmail() {
-        return "jimw@jwhh.com";
+        return "adeniyimayokun17@gmail.com";
     }
 
     public List<NoteInfo> getNotes() {
@@ -41,8 +104,8 @@ public class DataManager {
     }
 
     public int findNote(NoteInfo note) {
-        for(int index = 0; index < mNotes.size(); index++) {
-            if(note.equals(mNotes.get(index)))
+        for (int index = 0; index < mNotes.size(); index++) {
+            if (note.equals(mNotes.get(index)))
                 return index;
         }
 
@@ -67,8 +130,8 @@ public class DataManager {
 
     public List<NoteInfo> getNotes(CourseInfo course) {
         ArrayList<NoteInfo> notes = new ArrayList<>();
-        for(NoteInfo note:mNotes) {
-            if(course.equals(note.getCourse()))
+        for (NoteInfo note : mNotes) {
+            if (course.equals(note.getCourse()))
                 notes.add(note);
         }
         return notes;
@@ -76,8 +139,8 @@ public class DataManager {
 
     public int getNoteCount(CourseInfo course) {
         int count = 0;
-        for(NoteInfo note:mNotes) {
-            if(course.equals(note.getCourse()))
+        for (NoteInfo note : mNotes) {
+            if (course.equals(note.getCourse()))
                 count++;
         }
         return count;

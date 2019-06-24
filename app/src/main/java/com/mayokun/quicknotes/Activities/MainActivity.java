@@ -1,11 +1,14 @@
 package com.mayokun.quicknotes.Activities;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.preference.PreferenceManager;
 import android.view.View;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -19,10 +22,12 @@ import android.view.Menu;
 
 import com.mayokun.quicknotes.Adapter.CourseRecyclerViewAdapter;
 import com.mayokun.quicknotes.Adapter.NoteRecyclerViewAdapter;
+import com.mayokun.quicknotes.Data.DataBaseOpenHelper;
 import com.mayokun.quicknotes.Data.DataManager;
 import com.mayokun.quicknotes.Model.CourseInfo;
 import com.mayokun.quicknotes.Model.NoteInfo;
 import com.mayokun.quicknotes.R;
+import com.mayokun.quicknotes.Utils.Constants;
 
 import java.util.List;
 
@@ -36,6 +41,7 @@ public class MainActivity extends AppCompatActivity
     private List<CourseInfo> courseInfoList;
     private LinearLayoutManager linearLayoutManager;
     private GridLayoutManager gridLayoutManager;
+    private DataBaseOpenHelper dataBaseOpenHelper;
 
 
     @Override
@@ -48,6 +54,9 @@ public class MainActivity extends AppCompatActivity
         FloatingActionButton fab = findViewById(R.id.fab);
         noteInfoList = DataManager.getInstance().getNotes();
         courseInfoList = DataManager.getInstance().getCourses();
+        dataBaseOpenHelper = new DataBaseOpenHelper(this);
+        DataManager.loadDataFromDatabase(dataBaseOpenHelper);
+
 
 
         recyclerView = (RecyclerView) findViewById(R.id.list_items);
@@ -67,6 +76,7 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -102,6 +112,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onDestroy() {
+        dataBaseOpenHelper.close();
+        super.onDestroy();
+    }
+
+    @Override
     public void onBackPressed() {
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -127,6 +143,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(MainActivity.this,SettingsActivity.class));
             return true;
         }
 

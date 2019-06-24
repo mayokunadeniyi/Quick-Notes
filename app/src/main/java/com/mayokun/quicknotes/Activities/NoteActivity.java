@@ -1,21 +1,26 @@
 package com.mayokun.quicknotes.Activities;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.mayokun.quicknotes.Data.DataBaseOpenHelper;
 import com.mayokun.quicknotes.Data.DataManager;
 import com.mayokun.quicknotes.Model.CourseInfo;
 import com.mayokun.quicknotes.Model.NoteInfo;
 import com.mayokun.quicknotes.R;
 import com.mayokun.quicknotes.Utils.Constants;
+import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 
 import java.util.List;
 
@@ -32,6 +37,12 @@ public class NoteActivity extends AppCompatActivity {
     private String originalCourseID;
     private String originalNoteTitle;
     private String originalNoteText;
+    private DataBaseOpenHelper dataBaseOpenHelper;
+    private Cursor cursor;
+    private int courseIdPosition;
+    private int noteTitlePosition;
+    private int noteTextPosition;
+    private int noteID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,11 +50,13 @@ public class NoteActivity extends AppCompatActivity {
         setContentView(R.layout.activity_note);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        dataBaseOpenHelper = new DataBaseOpenHelper(this);
 
         spinnerCourses = (Spinner) findViewById(R.id.spinner_courses);
         noteTitle = (EditText) findViewById(R.id.note_title);
         noteText = (EditText) findViewById(R.id.note_text);
         dataManager = DataManager.getInstance();
+        noteInfo = DataManager.getInstance().getNotes().get(noteID);
 
         //Create Adapter for dropdown spinner
         List<CourseInfo> courseInfoList = DataManager.getInstance().getCourses();
@@ -54,16 +67,35 @@ public class NoteActivity extends AppCompatActivity {
         spinnerCourses.setAdapter(courseInfoArrayAdapter);
 
         readDisplayStateValues();
+
         if (savedInstanceState == null) {
             saveOriginalNoteValues();
         } else {
             restoreOriginalStateValues(savedInstanceState);
         }
 
-
         if (!mIsNewNote)
-            displayNotes(spinnerCourses, noteTitle, noteText);
+            loadNoteData();
+    }
 
+    private void loadNoteData() {
+        SQLiteDatabase db = dataBaseOpenHelper.getReadableDatabase();
+
+        String selection = NoteInfoEntry._ID + " = ?";
+
+        String[] selectionArgs = {Integer.toString(noteID)};
+
+        final String[] noteColumns = {NoteInfoEntry.COLUMN_COURSE_ID,
+                NoteInfoEntry.COLUMN_NOTE_TITLE, NoteInfoEntry.COLUMN_NOTE_TEXT};
+
+        cursor = db.query(NoteInfoEntry.TABLE_NAME, noteColumns, selection, selectionArgs,
+                null, null, null);
+        courseIdPosition = cursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
+        noteTitlePosition = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
+        noteTextPosition = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT);
+
+        cursor.moveToNext();
+        displayNotes();
 
     }
 
@@ -74,33 +106,34 @@ public class NoteActivity extends AppCompatActivity {
     }
 
     private void saveOriginalNoteValues() {
-        if (mIsNewNote) {
+        if (mIsNewNote)
             return;
-        } else {
-            originalCourseID = noteInfo.getCourse().getCourseId();
-            originalNoteTitle = noteInfo.getTitle();
-            originalNoteText = noteInfo.getText();
-        }
+        originalCourseID = noteInfo.getCourse().getCourseId();
+        originalNoteTitle = noteInfo.getTitle();
+        originalNoteText = noteInfo.getText();
+
     }
 
-    private void displayNotes(Spinner spinnerCourses, EditText noteTitle, EditText noteText) {
+    private void displayNotes() {
+        String noteTitleFromDB = cursor.getString(noteTitlePosition);
+        String noteTextFromDB = cursor.getString(noteTextPosition);
+        String courseFromDB = cursor.getString(courseIdPosition);
 
         List<CourseInfo> courseInfo = DataManager.getInstance().getCourses();
-        int indexOfCourse = courseInfo.indexOf(noteInfo.getCourse());
+        CourseInfo courseInfoDB = DataManager.getInstance().getCourse(courseFromDB);
+        int indexOfCourse = courseInfo.indexOf(courseInfoDB);
 
         spinnerCourses.setSelection(indexOfCourse);
-        noteTitle.setText(noteInfo.getTitle());
-        noteText.setText(noteInfo.getText());
+        noteTitle.setText(noteTitleFromDB);
+        noteText.setText(noteTextFromDB);
     }
 
     private void readDisplayStateValues() {
         Intent intent = getIntent();
-        int position = intent.getIntExtra(Constants.NOTE_POSITION, Constants.POSITION_NOT_SET);
-        mIsNewNote = position == Constants.POSITION_NOT_SET;
+        noteID = intent.getIntExtra(Constants.NOTE_ID, Constants.NOTE_ID_NOT_SET);
+        mIsNewNote = noteID == Constants.NOTE_ID_NOT_SET;
         if (mIsNewNote) {
             createNewNote();
-        } else {
-            noteInfo = DataManager.getInstance().getNotes().get(position);
         }
 
     }
@@ -125,6 +158,12 @@ public class NoteActivity extends AppCompatActivity {
             saveNote();
         }
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        dataBaseOpenHelper.close();
+        super.onDestroy();
     }
 
     private void storePreviousNoteValues() {
@@ -170,7 +209,7 @@ public class NoteActivity extends AppCompatActivity {
         } else if (id == R.id.action_cancel) {
             isCanceling = true;
             finish();
-        } else if (id == R.id.action_next){
+        } else if (id == R.id.action_next) {
             moveNext();
         }
 
@@ -190,7 +229,7 @@ public class NoteActivity extends AppCompatActivity {
         ++notePosition;
         noteInfo = DataManager.getInstance().getNotes().get(notePosition);
         saveOriginalNoteValues();
-        displayNotes(spinnerCourses,noteTitle,noteText);
+        displayNotes();
         invalidateOptionsMenu();
     }
 
