@@ -1,23 +1,31 @@
 package com.mayokun.quicknotes.Activities;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.preference.PreferenceManager;
 import android.view.View;
+
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+
 import android.view.MenuItem;
+
 import com.google.android.material.navigation.NavigationView;
+
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
 import android.view.Menu;
 
 import com.mayokun.quicknotes.Adapter.CourseRecyclerViewAdapter;
@@ -28,6 +36,7 @@ import com.mayokun.quicknotes.Model.CourseInfo;
 import com.mayokun.quicknotes.Model.NoteInfo;
 import com.mayokun.quicknotes.R;
 import com.mayokun.quicknotes.Utils.Constants;
+import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 
 import java.util.List;
 
@@ -58,13 +67,12 @@ public class MainActivity extends AppCompatActivity
         DataManager.loadDataFromDatabase(dataBaseOpenHelper);
 
 
-
         recyclerView = (RecyclerView) findViewById(R.id.list_items);
         recyclerView.setHasFixedSize(true);
         linearLayoutManager = new LinearLayoutManager(this);
         gridLayoutManager = new GridLayoutManager(this, 2);
 
-        noteRecyclerViewAdapter = new NoteRecyclerViewAdapter(this, noteInfoList);
+        noteRecyclerViewAdapter = new NoteRecyclerViewAdapter(this, null);
         courseRecyclerViewAdapter = new CourseRecyclerViewAdapter(this, courseInfoList);
         displayNotes();
 
@@ -107,8 +115,19 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        noteRecyclerViewAdapter.notifyDataSetChanged();
+        loadNotes();
         courseRecyclerViewAdapter.notifyDataSetChanged();
+    }
+
+    private void loadNotes() {
+        SQLiteDatabase db = dataBaseOpenHelper.getReadableDatabase();
+        final String[] noteColumns = {NoteInfoEntry.COLUMN_NOTE_TITLE,
+                NoteInfoEntry.COLUMN_COURSE_ID, NoteInfoEntry._ID};
+        String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+
+        final Cursor noteCursor = db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                null, null, null, null, noteOrderBy);
+        noteRecyclerViewAdapter.changeCursor(noteCursor);
     }
 
     @Override
@@ -143,7 +162,7 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            startActivity(new Intent(MainActivity.this,SettingsActivity.class));
+            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             return true;
         }
 

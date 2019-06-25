@@ -43,7 +43,7 @@ public class NoteListActivity extends AppCompatActivity {
             }
         });
 
-        noteRecyclerViewAdapter = new NoteRecyclerViewAdapter(this, noteInfoList);
+        noteRecyclerViewAdapter = new NoteRecyclerViewAdapter(this, null);
         recyclerView.setAdapter(noteRecyclerViewAdapter);
         noteRecyclerViewAdapter.notifyDataSetChanged();
 
