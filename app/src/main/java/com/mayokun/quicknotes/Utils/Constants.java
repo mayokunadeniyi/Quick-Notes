@@ -33,5 +33,9 @@ public class Constants {
         public static final String COLUMN_COURSE_ID = "course_id";
     }
 
+    //Loader Properties
+    public static final int LOADER_NOTES = 0;
+    public static final int LOADER_COURSES = 1;
+
 
 }
