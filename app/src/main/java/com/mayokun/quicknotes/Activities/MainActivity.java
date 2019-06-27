@@ -1,6 +1,9 @@
 package com.mayokun.quicknotes.Activities;
 
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -41,7 +44,8 @@ import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,
+        LoaderManager.LoaderCallbacks<Cursor> {
 
     private NoteRecyclerViewAdapter noteRecyclerViewAdapter;
     private CourseRecyclerViewAdapter courseRecyclerViewAdapter;
@@ -115,8 +119,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        loadNotes();
-        courseRecyclerViewAdapter.notifyDataSetChanged();
+        getLoaderManager().restartLoader(Constants.LOADER_NOTES,null,this);
     }
 
     private void loadNotes() {
@@ -189,5 +192,40 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        CursorLoader loader = null;
+        if (Constants.LOADER_NOTES == id){
+            loader = new CursorLoader(this){
+                @Override
+                public Cursor loadInBackground() {
+                    SQLiteDatabase db = dataBaseOpenHelper.getReadableDatabase();
+                    final String[] noteColumns = {NoteInfoEntry.COLUMN_NOTE_TITLE,
+                            NoteInfoEntry.COLUMN_COURSE_ID, NoteInfoEntry._ID};
+                    String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+
+                    return db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                            null, null, null, null, noteOrderBy);
+                }
+            };
+        }
+        return loader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (loader.getId() == Constants.LOADER_NOTES){
+            noteRecyclerViewAdapter.changeCursor(data);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        if (loader.getId() == Constants.LOADER_NOTES){
+          noteRecyclerViewAdapter.changeCursor(null);
+        }
     }
 }
