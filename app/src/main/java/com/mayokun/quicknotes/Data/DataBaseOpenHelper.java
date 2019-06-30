@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import androidx.annotation.Nullable;
 
 import com.mayokun.quicknotes.Utils.Constants;
+import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
+import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 
 public class DataBaseOpenHelper extends SQLiteOpenHelper {
 
@@ -21,19 +23,19 @@ public class DataBaseOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        String CREATE_COURSE_TABLE = "CREATE TABLE " + Constants.CourseInfoEntry.TABLE_NAME + "("
-                + Constants.CourseInfoEntry._ID + " INTEGER PRIMARY KEY," +
-                Constants.CourseInfoEntry.COLUMN_COURSE_ID + " TEXT UNIQUE NOT NULL," +
-                Constants.CourseInfoEntry.COLUMN_COURSE_TITLE + " TEXT NOT NULL);";
+        String CREATE_COURSE_TABLE = "CREATE TABLE " + CourseInfoEntry.TABLE_NAME + "("
+                + CourseInfoEntry._ID + " INTEGER PRIMARY KEY," +
+                CourseInfoEntry.COLUMN_COURSE_ID + " TEXT UNIQUE NOT NULL," +
+                CourseInfoEntry.COLUMN_COURSE_TITLE + " TEXT NOT NULL);";
 
         db.execSQL(CREATE_COURSE_TABLE);
 
 
-        String CREATE_NOTE_TABLE = "CREATE TABLE " + Constants.NoteInfoEntry.TABLE_NAME + "("
-                + Constants.NoteInfoEntry._ID + " INTEGER PRIMARY KEY," +
-                Constants.NoteInfoEntry.COLUMN_NOTE_TITLE + " TEXT NOT NULL," +
-                Constants.NoteInfoEntry.COLUMN_NOTE_TEXT + " TEXT," +
-                Constants.NoteInfoEntry.COLUMN_COURSE_ID + " TEXT UNIQUE NOT NULL);";
+        String CREATE_NOTE_TABLE = "CREATE TABLE " + NoteInfoEntry.TABLE_NAME + "("
+                + NoteInfoEntry._ID + " INTEGER PRIMARY KEY," +
+                NoteInfoEntry.COLUMN_NOTE_TITLE + " TEXT NOT NULL," +
+                NoteInfoEntry.COLUMN_NOTE_TEXT + " TEXT," +
+                NoteInfoEntry.COLUMN_COURSE_ID + " TEXT NOT NULL);";
 
         db.execSQL(CREATE_NOTE_TABLE);
 
@@ -41,12 +43,15 @@ public class DataBaseOpenHelper extends SQLiteOpenHelper {
         databaseDataWorker.insertCourses();
         databaseDataWorker.insertSampleNotes();
 
+        db.execSQL(CourseInfoEntry.SQL_CREATE_INDEX1);
+        db.execSQL(NoteInfoEntry.SQL_CREATE_INDEX1);
+
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-       db.execSQL("DROP TABLE IF EXISTS " + Constants.CourseInfoEntry.TABLE_NAME);
-       db.execSQL("DROP TABLE IF EXISTS " + Constants.NoteInfoEntry.TABLE_NAME);
+       db.execSQL("DROP TABLE IF EXISTS " + CourseInfoEntry.TABLE_NAME);
+       db.execSQL("DROP TABLE IF EXISTS " + NoteInfoEntry.TABLE_NAME);
 
        onCreate(db);
     }
