@@ -1,11 +1,13 @@
 package com.mayokun.quicknotes.Activities;
 
 import android.app.LoaderManager;
+import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -22,6 +24,7 @@ import android.widget.Spinner;
 
 import com.mayokun.quicknotes.Data.DataBaseOpenHelper;
 import com.mayokun.quicknotes.Data.DataManager;
+import com.mayokun.quicknotes.Data.DatabaseDataWorker;
 import com.mayokun.quicknotes.Model.CourseInfo;
 import com.mayokun.quicknotes.Model.NoteInfo;
 import com.mayokun.quicknotes.R;
@@ -147,9 +150,20 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void createNewNote() {
 
-        dataManager = DataManager.getInstance();
-        notePosition = dataManager.createNewNote();
-        noteInfo = dataManager.getNotes().get(notePosition);
+       final ContentValues values = new ContentValues();
+        values.put(NoteInfoEntry.COLUMN_COURSE_ID,"");
+        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE,"");
+        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT,"");
+
+        AsyncTask task = new AsyncTask() {
+            @Override
+            protected Object doInBackground(Object[] objects) {
+                SQLiteDatabase db = dataBaseOpenHelper.getWritableDatabase();
+                noteID = (int) db.insert(NoteInfoEntry.TABLE_NAME,null,values);
+                return null;
+            }
+        };
+        task.execute();
     }
 
     @Override
@@ -157,7 +171,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onPause();
         if (isCanceling) {
             if (mIsNewNote) {
-                DataManager.getInstance().removeNote(notePosition);
+                deleteNoteFromDataBase();
             } else {
                 storePreviousNoteValues();
             }
@@ -165,6 +179,22 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
             saveNote();
         }
 
+    }
+
+    private void deleteNoteFromDataBase() {
+        final String selection = NoteInfoEntry._ID + " = ?";
+        final String[] selectionArgs = {Integer.toString(noteID)};
+
+        AsyncTask task = new AsyncTask() {
+            @Override
+            protected Object doInBackground(Object[] objects) {
+
+                SQLiteDatabase db = dataBaseOpenHelper.getWritableDatabase();
+                db.delete(NoteInfoEntry.TABLE_NAME,selection,selectionArgs);
+                return null;
+            }
+        };
+        task.execute();
     }
 
     @Override
@@ -182,9 +212,34 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     private void saveNote() {
-        noteInfo.setCourse((CourseInfo) spinnerCourses.getSelectedItem());
-        noteInfo.setTitle(noteTitle.getText().toString());
-        noteInfo.setText(noteText.getText().toString());
+        String courseId = selectedCourseId();
+        String title = noteTitle.getText().toString();
+        String text = noteText.getText().toString();
+        saveToDataBase(courseId,title,text);
+    }
+
+    private String selectedCourseId() {
+        int spinnerPosition = spinnerCourses.getSelectedItemPosition();
+        Cursor cursor = courseInfoArrayAdapter.getCursor();
+        cursor.moveToPosition(spinnerPosition);
+        int courseIdPos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_ID);
+        String courseId = cursor.getString(courseIdPos);
+        return courseId;
+    }
+
+    private void saveToDataBase(String courseId, String noteTitle, String noteText) {
+        String selection = NoteInfoEntry._ID + " = ?";
+        String[] selectionArgs = {Integer.toString(noteID)};
+
+        ContentValues values = new ContentValues();
+        values.put(NoteInfoEntry.COLUMN_COURSE_ID, courseId);
+        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, noteTitle);
+        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, noteText);
+
+        SQLiteDatabase db = dataBaseOpenHelper.getWritableDatabase();
+        db.update(NoteInfoEntry.TABLE_NAME, values, selection, selectionArgs);
+
+
     }
 
     @Override
