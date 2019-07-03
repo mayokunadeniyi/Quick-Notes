@@ -39,6 +39,7 @@ import com.mayokun.quicknotes.Model.CourseInfo;
 import com.mayokun.quicknotes.Model.NoteInfo;
 import com.mayokun.quicknotes.R;
 import com.mayokun.quicknotes.Utils.Constants;
+import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
 import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 
 import java.util.List;
@@ -204,10 +205,14 @@ public class MainActivity extends AppCompatActivity
                 public Cursor loadInBackground() {
                     SQLiteDatabase db = dataBaseOpenHelper.getReadableDatabase();
                     final String[] noteColumns = {NoteInfoEntry.COLUMN_NOTE_TITLE,
-                            NoteInfoEntry.COLUMN_COURSE_ID, NoteInfoEntry._ID};
-                    String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+                            NoteInfoEntry.getQNames(NoteInfoEntry._ID),
+                            CourseInfoEntry.COLUMN_COURSE_TITLE};
+                    String noteOrderBy = CourseInfoEntry.COLUMN_COURSE_TITLE + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
 
-                    return db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                    String tablesWithJoin = NoteInfoEntry.TABLE_NAME + " JOIN " + CourseInfoEntry.TABLE_NAME +
+                            " ON " + NoteInfoEntry.getQNames(NoteInfoEntry.COLUMN_COURSE_ID) + " = " +
+                            CourseInfoEntry.getQNames(CourseInfoEntry.COLUMN_COURSE_ID);
+                    return db.query(tablesWithJoin, noteColumns,
                             null, null, null, null, noteOrderBy);
                 }
             };

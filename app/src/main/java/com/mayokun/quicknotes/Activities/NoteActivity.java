@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
@@ -32,11 +33,12 @@ import com.mayokun.quicknotes.Utils.Constants;
 import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
 import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 
+import java.net.URI;
 import java.util.List;
 
 public class NoteActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private Spinner spinnerCourses;
-    private NoteInfo noteInfo;
+    private NoteInfo noteInfo = new NoteInfo(DataManager.getInstance().getCourses().get(0),"","");
     private EditText noteTitle;
     private EditText noteText;
     private CourseInfo courseInfo;
@@ -69,7 +71,6 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         noteTitle = (EditText) findViewById(R.id.note_title);
         noteText = (EditText) findViewById(R.id.note_text);
         dataManager = DataManager.getInstance();
-        noteInfo = DataManager.getInstance().getNotes().get(noteID);
 
         //Create Adapter for dropdown spinner
         courseInfoArrayAdapter = new SimpleCursorAdapter(NoteActivity.this,
@@ -319,17 +320,11 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private CursorLoader createLoaderCourses() {
         coursesQueryFinished = false;
-        return new CursorLoader(this) {
-            @Override
-            public Cursor loadInBackground() {
-                SQLiteDatabase db = dataBaseOpenHelper.getReadableDatabase();
-                String[] courseColumns = {CourseInfoEntry.COLUMN_COURSE_TITLE,
-                        CourseInfoEntry.COLUMN_COURSE_ID, CourseInfoEntry._ID};
-
-                return db.query(CourseInfoEntry.TABLE_NAME, courseColumns, null, null, null,
-                        null, CourseInfoEntry.COLUMN_COURSE_TITLE);
-            }
-        };
+        Uri uri = Uri.parse("content://com.mayokun.quicknotes.provider");
+        String[] courseColumns = {CourseInfoEntry.COLUMN_COURSE_TITLE,
+                CourseInfoEntry.COLUMN_COURSE_ID, CourseInfoEntry._ID};
+        return new CursorLoader(this,uri,courseColumns,null,
+                null,CourseInfoEntry.COLUMN_COURSE_TITLE);
     }
 
     private CursorLoader createLoaderNotes() {

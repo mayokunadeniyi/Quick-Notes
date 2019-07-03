@@ -2,7 +2,6 @@ package com.mayokun.quicknotes.Utils;
 
 import android.provider.BaseColumns;
 
-import com.mayokun.quicknotes.Activities.NoteActivity;
 
 public class Constants {
     public static final String NOTE_ID = "com.mayokun.quicknotes.NOTE_ID";
@@ -15,7 +14,7 @@ public class Constants {
 
     //Database properties
     public static final String DATABASE_NAME = "QuickNotes.db";
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
 
     //CourseInfoEntry
     public static final class CourseInfoEntry implements BaseColumns {
@@ -23,6 +22,15 @@ public class Constants {
         public static final String COLUMN_COURSE_ID = "course_id";
         public static final String COLUMN_COURSE_TITLE = "course_title";
 
+        //CREATE INDEX course_info_index1 ON course_info (course_title)
+        public static final String INDEX1 = TABLE_NAME + "_index1";
+        public static final String SQL_CREATE_INDEX1 = "CREATE INDEX "
+                + INDEX1 + " ON " + TABLE_NAME + "(" + COLUMN_COURSE_TITLE +
+                ")";
+
+        public static final String getQNames(String columnName) {
+            return TABLE_NAME + "." + columnName;
+        }
     }
 
     //NoteInfoEntry
@@ -31,6 +39,16 @@ public class Constants {
         public static final String COLUMN_NOTE_TITLE = "note_title";
         public static final String COLUMN_NOTE_TEXT = "note_text";
         public static final String COLUMN_COURSE_ID = "course_id";
+
+        public static final String INDEX1 = TABLE_NAME + "_index1";
+        public static final String SQL_CREATE_INDEX1 = "CREATE INDEX "
+                + INDEX1 + " ON " + TABLE_NAME + "(" + COLUMN_NOTE_TITLE +
+                ")";
+
+
+        public static final String getQNames(String columnName) {
+            return TABLE_NAME + "." + columnName;
+        }
     }
 
     //Loader Properties

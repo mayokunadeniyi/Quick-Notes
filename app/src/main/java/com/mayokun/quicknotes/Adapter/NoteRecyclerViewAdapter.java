@@ -15,6 +15,7 @@ import com.mayokun.quicknotes.Activities.NoteActivity;
 import com.mayokun.quicknotes.Model.NoteInfo;
 import com.mayokun.quicknotes.R;
 import com.mayokun.quicknotes.Utils.Constants;
+import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
 import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public class NoteRecyclerViewAdapter extends RecyclerView.Adapter<NoteRecyclerVi
             return;
         //Get column index from mCursor
 
-        coursePos = mCursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
+        coursePos = mCursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_TITLE);
         noteTitlePos = mCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
         noteId = mCursor.getColumnIndex(NoteInfoEntry._ID);
     }

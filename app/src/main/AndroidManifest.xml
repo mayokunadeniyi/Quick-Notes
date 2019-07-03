@@ -9,6 +9,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <provider
+            android:name=".ContentProvider.QuickNotesProvider"
+            android:authorities="com.mayokun.quicknotes.provider"
+            android:enabled="true"
+            android:exported="true">
+        </provider>
+
         <activity
             android:name=".Activities.SettingsActivity"
             android:label="Settings"
@@ -30,7 +37,7 @@
         <activity
             android:name=".Activities.NoteListActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Activities.NoteActivity"
             android:label="@string/title_activity_note"
