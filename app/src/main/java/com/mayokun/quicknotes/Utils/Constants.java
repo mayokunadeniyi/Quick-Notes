@@ -55,5 +55,10 @@ public class Constants {
     public static final int LOADER_NOTES = 0;
     public static final int LOADER_COURSES = 1;
 
+    //Content Provider
+    public static final int COURSES_CODE = 0;
+    public static final int NOTES_CODE = 1;
+    public static final int NOTES_EXPANDED_CODE = 2;
+
 
 }

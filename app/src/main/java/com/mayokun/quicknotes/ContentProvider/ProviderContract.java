@@ -28,8 +28,10 @@ public final class ProviderContract {
         public static final Uri CONTENT_URI = Uri.withAppendedPath(AUTHORITY_URI, PATH);
     }
 
-    public static final class Notes implements NoteColumns, BaseColumns, CourseIdColumns {
+    public static final class Notes implements NoteColumns, BaseColumns, CourseIdColumns, CourseColumns {
         public static final String PATH = "notes";
         public static final Uri CONTENT_URI = Uri.withAppendedPath(AUTHORITY_URI, PATH);
+        public static final String EXPANDED_PATH = "notes_expanded";
+        public static final Uri CONTENT_EXPANDED_URI = Uri.withAppendedPath(AUTHORITY_URI,EXPANDED_PATH);
     }
 }

@@ -23,6 +23,8 @@ import android.widget.EditText;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
+import com.mayokun.quicknotes.ContentProvider.ProviderContract;
+import com.mayokun.quicknotes.ContentProvider.ProviderContract.Courses;
 import com.mayokun.quicknotes.Data.DataBaseOpenHelper;
 import com.mayokun.quicknotes.Data.DataManager;
 import com.mayokun.quicknotes.Data.DatabaseDataWorker;
@@ -320,11 +322,11 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private CursorLoader createLoaderCourses() {
         coursesQueryFinished = false;
-        Uri uri = Uri.parse("content://com.mayokun.quicknotes.provider");
-        String[] courseColumns = {CourseInfoEntry.COLUMN_COURSE_TITLE,
-                CourseInfoEntry.COLUMN_COURSE_ID, CourseInfoEntry._ID};
+        Uri uri = Courses.CONTENT_URI;
+        String[] courseColumns = {Courses.COLUMN_COURSE_TITLE,
+                Courses.COLUMN_COURSE_ID, Courses._ID};
         return new CursorLoader(this,uri,courseColumns,null,
-                null,CourseInfoEntry.COLUMN_COURSE_TITLE);
+                null,Courses.COLUMN_COURSE_TITLE);
     }
 
     private CursorLoader createLoaderNotes() {
