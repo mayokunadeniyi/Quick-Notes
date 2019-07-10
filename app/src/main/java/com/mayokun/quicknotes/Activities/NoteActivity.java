@@ -36,6 +36,7 @@ import com.mayokun.quicknotes.R;
 import com.mayokun.quicknotes.Utils.Constants;
 import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
 import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
+import com.mayokun.quicknotes.Utils.QuickNotesNotification;
 
 import java.net.URI;
 import java.util.List;
@@ -271,9 +272,18 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
             finish();
         } else if (id == R.id.action_next) {
             moveNext();
+        }else if (id == R.id.set_reminder){
+            showReminderNotifications();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showReminderNotifications() {
+        String notificationNoteText = noteText.getText().toString();
+        String notificationNoteTitle = noteTitle.getText().toString();
+        int noteId = (int)ContentUris.parseId(noteUri);
+        QuickNotesNotification.notify(this,notificationNoteText,notificationNoteTitle,noteId);
     }
 
     @Override

@@ -20,4 +20,8 @@
         android:orderInCategory="102"
         android:title="@string/action_send_note"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/set_reminder"
+        android:orderInCategory="103"
+        android:title="Set Reminder" />
 </menu>
