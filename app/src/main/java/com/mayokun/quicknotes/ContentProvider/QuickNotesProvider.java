@@ -1,14 +1,19 @@
 package com.mayokun.quicknotes.ContentProvider;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.provider.ContactsContract;
 
 import com.mayokun.quicknotes.ContentProvider.ProviderContract.CourseIdColumns;
+import com.mayokun.quicknotes.ContentProvider.ProviderContract.Courses;
+import com.mayokun.quicknotes.ContentProvider.ProviderContract.Notes;
 import com.mayokun.quicknotes.Data.DataBaseOpenHelper;
 import com.mayokun.quicknotes.Utils.Constants;
 import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
@@ -22,9 +27,10 @@ public class QuickNotesProvider extends ContentProvider {
     public static UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     static {
-        uriMatcher.addURI(ProviderContract.AUTHORITY, ProviderContract.Courses.PATH, Constants.COURSES_CODE);
-        uriMatcher.addURI(ProviderContract.AUTHORITY, ProviderContract.Notes.PATH, Constants.NOTES_CODE);
-        uriMatcher.addURI(ProviderContract.AUTHORITY, ProviderContract.Notes.EXPANDED_PATH, Constants.NOTES_EXPANDED_CODE);
+        uriMatcher.addURI(ProviderContract.AUTHORITY, Courses.PATH, Constants.COURSES_CODE);
+        uriMatcher.addURI(ProviderContract.AUTHORITY, Notes.PATH, Constants.NOTES_CODE);
+        uriMatcher.addURI(ProviderContract.AUTHORITY, Notes.EXPANDED_PATH, Constants.NOTES_EXPANDED_CODE);
+        uriMatcher.addURI(ProviderContract.AUTHORITY, Notes.PATH + "/#", Constants.NOTES_ROW);
     }
 
     public QuickNotesProvider() {
@@ -38,15 +44,55 @@ public class QuickNotesProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        // TODO: Implement this to handle requests for the MIME type of the data
-        // at the given URI.
-        throw new UnsupportedOperationException("Not yet implemented");
+        String mimeType = null;
+        int uriMatch = uriMatcher.match(uri);
+        switch (uriMatch) {
+            case Constants.COURSES_CODE:
+                mimeType = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
+                        + "vnd." + ProviderContract.AUTHORITY + "." + Courses.PATH;
+                break;
+
+            case Constants.NOTES_CODE:
+                mimeType = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
+                        + "vnd." + ProviderContract.AUTHORITY + "." + Notes.PATH;
+                break;
+
+            case Constants.NOTES_EXPANDED_CODE:
+                mimeType = ContentResolver.CURSOR_DIR_BASE_TYPE + "/"
+                        + ".vnd" + ProviderContract.AUTHORITY + "." + Notes.EXPANDED_PATH;
+                break;
+            case Constants.NOTES_ROW:
+                mimeType = ContentResolver.CURSOR_ITEM_BASE_TYPE + "/"
+                        + ".vnd" + ProviderContract.AUTHORITY + "." + Notes.PATH;
+                break;
+        }
+
+        return mimeType;
     }
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        // TODO: Implement this to handle requests to insert a new row.
-        throw new UnsupportedOperationException("Not yet implemented");
+        SQLiteDatabase db = dataBaseOpenHelper.getWritableDatabase();
+        long rowId = -1;
+        Uri rowUri = null;
+        int uriMatch = uriMatcher.match(uri);
+
+        switch (uriMatch) {
+            case Constants.NOTES_CODE:
+                rowId = db.insert(NoteInfoEntry.TABLE_NAME, null, values);
+                rowUri = ContentUris.withAppendedId(Notes.CONTENT_URI, rowId);
+                break;
+
+            case Constants.COURSES_CODE:
+                rowId = db.insert(CourseInfoEntry.TABLE_NAME, null, values);
+                rowUri = ContentUris.withAppendedId(Courses.CONTENT_URI, rowId);
+                break;
+            case Constants.NOTES_EXPANDED_CODE:
+                //throw exception
+                break;
+        }
+
+        return rowUri;
     }
 
     @Override
@@ -72,7 +118,14 @@ public class QuickNotesProvider extends ContentProvider {
                         null, null, sortOrder);
                 break;
             case Constants.NOTES_EXPANDED_CODE:
-                cursor = noteExpandedQuery(db,projection,selection,selectionArgs,sortOrder);
+                cursor = noteExpandedQuery(db, projection, selection, selectionArgs, sortOrder);
+                break;
+            case Constants.NOTES_ROW:
+                long rowId = ContentUris.parseId(uri);
+                String rowSelection = NoteInfoEntry._ID + " = ?";
+                String[] rowSelectionArgs = new String[]{Long.toString(rowId)};
+                cursor = db.query(NoteInfoEntry.TABLE_NAME, projection, rowSelection, rowSelectionArgs,
+                        null, null, null);
                 break;
         }
 
@@ -83,9 +136,9 @@ public class QuickNotesProvider extends ContentProvider {
                                      String[] selectionArgs, String sortOrder) {
 
         String[] columns = new String[projection.length];
-        for (int idx = 0; idx<projection.length; idx++){
+        for (int idx = 0; idx < projection.length; idx++) {
             columns[idx] = projection[idx].equals(BaseColumns._ID) ||
-                    projection[idx].equals(CourseIdColumns.COLUMN_COURSE_ID)?
+                    projection[idx].equals(CourseIdColumns.COLUMN_COURSE_ID) ?
                     NoteInfoEntry.getQNames(projection[idx]) : projection[idx];
         }
 
@@ -94,7 +147,7 @@ public class QuickNotesProvider extends ContentProvider {
                 NoteInfoEntry.getQNames(NoteInfoEntry.COLUMN_COURSE_ID) + " = " +
                 CourseInfoEntry.getQNames(CourseInfoEntry.COLUMN_COURSE_ID);
 
-       return db.query(tablesWithJoin,columns,selection,selectionArgs,null,null,sortOrder);
+        return db.query(tablesWithJoin, columns, selection, selectionArgs, null, null, sortOrder);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.mayokun.quicknotes.Activities;
 
 import android.app.LoaderManager;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -25,6 +26,7 @@ import android.widget.Spinner;
 
 import com.mayokun.quicknotes.ContentProvider.ProviderContract;
 import com.mayokun.quicknotes.ContentProvider.ProviderContract.Courses;
+import com.mayokun.quicknotes.ContentProvider.ProviderContract.Notes;
 import com.mayokun.quicknotes.Data.DataBaseOpenHelper;
 import com.mayokun.quicknotes.Data.DataManager;
 import com.mayokun.quicknotes.Data.DatabaseDataWorker;
@@ -40,7 +42,7 @@ import java.util.List;
 
 public class NoteActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
     private Spinner spinnerCourses;
-    private NoteInfo noteInfo = new NoteInfo(DataManager.getInstance().getCourses().get(0),"","");
+    private NoteInfo noteInfo = new NoteInfo(DataManager.getInstance().getCourses().get(0), "", "");
     private EditText noteTitle;
     private EditText noteText;
     private CourseInfo courseInfo;
@@ -60,6 +62,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
     private SimpleCursorAdapter courseInfoArrayAdapter;
     private boolean coursesQueryFinished;
     private boolean notesQueryFinished;
+    private Uri noteUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,20 +156,12 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void createNewNote() {
 
-       final ContentValues values = new ContentValues();
-        values.put(NoteInfoEntry.COLUMN_COURSE_ID,"");
-        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE,"");
-        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT,"");
+        final ContentValues values = new ContentValues();
+        values.put(Notes.COLUMN_COURSE_ID, "");
+        values.put(Notes.COLUMN_NOTE_TITLE, "");
+        values.put(Notes.COLUMN_NOTE_TEXT, "");
 
-        AsyncTask task = new AsyncTask() {
-            @Override
-            protected Object doInBackground(Object[] objects) {
-                SQLiteDatabase db = dataBaseOpenHelper.getWritableDatabase();
-                noteID = (int) db.insert(NoteInfoEntry.TABLE_NAME,null,values);
-                return null;
-            }
-        };
-        task.execute();
+        noteUri = getContentResolver().insert(Notes.CONTENT_URI, values);
     }
 
     @Override
@@ -193,7 +188,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
             protected Object doInBackground(Object[] objects) {
 
                 SQLiteDatabase db = dataBaseOpenHelper.getWritableDatabase();
-                db.delete(NoteInfoEntry.TABLE_NAME,selection,selectionArgs);
+                db.delete(NoteInfoEntry.TABLE_NAME, selection, selectionArgs);
                 return null;
             }
         };
@@ -218,7 +213,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         String courseId = selectedCourseId();
         String title = noteTitle.getText().toString();
         String text = noteText.getText().toString();
-        saveToDataBase(courseId,title,text);
+        saveToDataBase(courseId, title, text);
     }
 
     private String selectedCourseId() {
@@ -325,28 +320,18 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         Uri uri = Courses.CONTENT_URI;
         String[] courseColumns = {Courses.COLUMN_COURSE_TITLE,
                 Courses.COLUMN_COURSE_ID, Courses._ID};
-        return new CursorLoader(this,uri,courseColumns,null,
-                null,Courses.COLUMN_COURSE_TITLE);
+        return new CursorLoader(this, uri, courseColumns, null,
+                null, Courses.COLUMN_COURSE_TITLE);
     }
 
     private CursorLoader createLoaderNotes() {
         notesQueryFinished = false;
-        return new CursorLoader(this) {
-            @Override
-            public Cursor loadInBackground() {
-                SQLiteDatabase db = dataBaseOpenHelper.getReadableDatabase();
 
-                String selection = NoteInfoEntry._ID + " = ?";
+        final String[] noteColumns = {NoteInfoEntry.COLUMN_COURSE_ID,
+                NoteInfoEntry.COLUMN_NOTE_TITLE, NoteInfoEntry.COLUMN_NOTE_TEXT};
 
-                String[] selectionArgs = {Integer.toString(noteID)};
-
-                final String[] noteColumns = {NoteInfoEntry.COLUMN_COURSE_ID,
-                        NoteInfoEntry.COLUMN_NOTE_TITLE, NoteInfoEntry.COLUMN_NOTE_TEXT};
-
-                return db.query(NoteInfoEntry.TABLE_NAME, noteColumns, selection, selectionArgs,
-                        null, null, null);
-            }
-        };
+        noteUri = ContentUris.withAppendedId(Notes.CONTENT_URI, noteID);
+        return new CursorLoader(this, noteUri, noteColumns, null, null, null);
     }
 
     @Override

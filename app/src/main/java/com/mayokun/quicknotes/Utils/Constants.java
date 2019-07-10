@@ -59,6 +59,7 @@ public class Constants {
     public static final int COURSES_CODE = 0;
     public static final int NOTES_CODE = 1;
     public static final int NOTES_EXPANDED_CODE = 2;
+    public static final int NOTES_ROW = 3;
 
 
 }
