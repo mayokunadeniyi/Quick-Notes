@@ -17,10 +17,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
@@ -157,12 +160,54 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void createNewNote() {
 
+        AsyncTask<ContentValues, Integer, Uri> task = new AsyncTask<ContentValues, Integer, Uri>() {
+
+            private ProgressBar progressBar;
+
+            @Override
+            protected void onPreExecute() {
+                progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.setProgress(1);
+            }
+
+            @Override
+            protected Uri doInBackground(ContentValues... contentValues) {
+                Log.d("TAG","doInBackground-thread: " + Thread.currentThread().getId());
+                ContentValues insertValues = contentValues[0];
+                Uri rowUri = getContentResolver().insert(Notes.CONTENT_URI, insertValues);
+                simulateLongRunningWork();
+                publishProgress(2);
+
+                simulateLongRunningWork();
+                publishProgress(3);
+                return rowUri;
+            }
+
+            @Override
+            protected void onProgressUpdate(Integer... values) {
+                int progressValue = values[0];
+                progressBar.setProgress(progressValue);
+            }
+
+            @Override
+            protected void onPostExecute(Uri uri) {
+                Log.d("TAG","doInBackground-thread: " + Thread.currentThread().getId());
+                noteUri = uri;
+                progressBar.setVisibility(View.GONE);
+            }
+        };
+
         final ContentValues values = new ContentValues();
         values.put(Notes.COLUMN_COURSE_ID, "");
         values.put(Notes.COLUMN_NOTE_TITLE, "");
         values.put(Notes.COLUMN_NOTE_TEXT, "");
 
-        noteUri = getContentResolver().insert(Notes.CONTENT_URI, values);
+        task.execute(values);
+    }
+
+    private void simulateLongRunningWork() {
+
     }
 
     @Override
@@ -272,7 +317,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
             finish();
         } else if (id == R.id.action_next) {
             moveNext();
-        }else if (id == R.id.set_reminder){
+        } else if (id == R.id.set_reminder) {
             showReminderNotifications();
         }
 
@@ -282,8 +327,8 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
     private void showReminderNotifications() {
         String notificationNoteText = noteText.getText().toString();
         String notificationNoteTitle = noteTitle.getText().toString();
-        int noteId = (int)ContentUris.parseId(noteUri);
-        QuickNotesNotification.notify(this,notificationNoteText,notificationNoteTitle,noteId);
+        int noteId = (int) ContentUris.parseId(noteUri);
+        QuickNotesNotification.notify(this, notificationNoteText, notificationNoteTitle, noteId);
     }
 
     @Override

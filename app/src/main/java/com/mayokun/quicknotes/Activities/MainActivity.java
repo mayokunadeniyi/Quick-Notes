@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -14,6 +15,8 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.view.View;
 
@@ -33,6 +36,7 @@ import android.view.Menu;
 
 import com.mayokun.quicknotes.Adapter.CourseRecyclerViewAdapter;
 import com.mayokun.quicknotes.Adapter.NoteRecyclerViewAdapter;
+import com.mayokun.quicknotes.BuildConfig;
 import com.mayokun.quicknotes.ContentProvider.ProviderContract;
 import com.mayokun.quicknotes.ContentProvider.ProviderContract.Notes;
 import com.mayokun.quicknotes.Data.DataBaseOpenHelper;
@@ -66,6 +70,8 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        enableStrictMode();
 
         FloatingActionButton fab = findViewById(R.id.fab);
         noteInfoList = DataManager.getInstance().getNotes();
@@ -101,6 +107,16 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
     }
 
+    private void enableStrictMode() {
+        if (BuildConfig.DEBUG) {
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
+                    .detectAll()
+                    .penaltyLog()
+                    .build();
+            StrictMode.setThreadPolicy(policy);
+        }
+    }
+
     private void displayNotes() {
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(noteRecyclerViewAdapter);
@@ -122,7 +138,21 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        getLoaderManager().restartLoader(Constants.LOADER_NOTES,null,this);
+        getLoaderManager().restartLoader(Constants.LOADER_NOTES, null, this);
+
+        openDrawer();
+    }
+
+    private void openDrawer() {
+        Handler handler = new Handler(getMainLooper());
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                DrawerLayout drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        }, 1000);
+
     }
 
     private void loadNotes() {
@@ -201,32 +231,32 @@ public class MainActivity extends AppCompatActivity
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         CursorLoader loader = null;
-        if (Constants.LOADER_NOTES == id){
+        if (Constants.LOADER_NOTES == id) {
 
-                    final String[] noteColumns = {Notes.COLUMN_NOTE_TITLE,
-                            NoteInfoEntry.getQNames(NoteInfoEntry._ID),
-                            Notes.COLUMN_COURSE_TITLE};
+            final String[] noteColumns = {Notes.COLUMN_NOTE_TITLE,
+                    NoteInfoEntry.getQNames(NoteInfoEntry._ID),
+                    Notes.COLUMN_COURSE_TITLE};
 
-                    String noteOrderBy = Notes.COLUMN_COURSE_TITLE + "," +
-                            Notes.COLUMN_NOTE_TITLE;
+            String noteOrderBy = Notes.COLUMN_COURSE_TITLE + "," +
+                    Notes.COLUMN_NOTE_TITLE;
 
-                    loader = new CursorLoader(this, Notes.CONTENT_EXPANDED_URI,
-                            noteColumns,null,null,noteOrderBy);
+            loader = new CursorLoader(this, Notes.CONTENT_EXPANDED_URI,
+                    noteColumns, null, null, noteOrderBy);
         }
         return loader;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (loader.getId() == Constants.LOADER_NOTES){
+        if (loader.getId() == Constants.LOADER_NOTES) {
             noteRecyclerViewAdapter.changeCursor(data);
         }
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        if (loader.getId() == Constants.LOADER_NOTES){
-          noteRecyclerViewAdapter.changeCursor(null);
+        if (loader.getId() == Constants.LOADER_NOTES) {
+            noteRecyclerViewAdapter.changeCursor(null);
         }
     }
 }
