@@ -11,11 +11,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <service
+            android:name=".Utils.NoteBackUpService"
+            android:exported="false"></service>
+
         <provider
             android:name=".ContentProvider.QuickNotesProvider"
             android:authorities="com.mayokun.quicknotes.provider"
             android:enabled="true"
-            android:exported="true"></provider>
+            android:exported="true" />
 
         <activity
             android:name=".Activities.SettingsActivity"

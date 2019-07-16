@@ -16,6 +16,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.mayokun.quicknotes.Activities.MainActivity;
 import com.mayokun.quicknotes.Activities.NoteActivity;
+import com.mayokun.quicknotes.Data.NoteBackup;
 import com.mayokun.quicknotes.R;
 
 /**
@@ -58,6 +59,9 @@ public class QuickNotesNotification {
 
         Intent noteActivityIntent = new Intent(context, NoteActivity.class);
         noteActivityIntent.putExtra(Constants.NOTE_ID, noteId);
+
+        Intent backUpServiceIntent = new Intent(context,NoteBackUpService.class);
+        backUpServiceIntent.putExtra(NoteBackUpService.EXTRA_COURSE_ID, NoteBackup.ALL_COURSES);
 
 
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(context)
@@ -113,6 +117,10 @@ public class QuickNotesNotification {
                 .addAction(0, "View All Notes",
                         PendingIntent.getActivity(context, 0,
                                 new Intent(context, MainActivity.class),
+                                PendingIntent.FLAG_UPDATE_CURRENT))
+                .addAction(0, "BackUp Notes",
+                        PendingIntent.getService(context, 0,
+                                backUpServiceIntent,
                                 PendingIntent.FLAG_UPDATE_CURRENT))
 
                 // Automatically dismiss the notification when it is touched.

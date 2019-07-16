@@ -41,12 +41,14 @@ import com.mayokun.quicknotes.ContentProvider.ProviderContract;
 import com.mayokun.quicknotes.ContentProvider.ProviderContract.Notes;
 import com.mayokun.quicknotes.Data.DataBaseOpenHelper;
 import com.mayokun.quicknotes.Data.DataManager;
+import com.mayokun.quicknotes.Data.NoteBackup;
 import com.mayokun.quicknotes.Model.CourseInfo;
 import com.mayokun.quicknotes.Model.NoteInfo;
 import com.mayokun.quicknotes.R;
 import com.mayokun.quicknotes.Utils.Constants;
 import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
 import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
+import com.mayokun.quicknotes.Utils.NoteBackUpService;
 
 import java.util.List;
 
@@ -139,7 +141,6 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         getLoaderManager().restartLoader(Constants.LOADER_NOTES, null, this);
-
         openDrawer();
     }
 
@@ -200,9 +201,17 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.action_settings) {
             startActivity(new Intent(MainActivity.this, SettingsActivity.class));
             return true;
+        }else if (id == R.id.backup_notes){
+            backUpNotes();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void backUpNotes() {
+        Intent intent = new Intent(this, NoteBackUpService.class);
+        intent.putExtra(NoteBackUpService.EXTRA_COURSE_ID,NoteBackup.ALL_COURSES);
+        startService(intent);
     }
 
     @SuppressWarnings("StatementWithEmptyBody")

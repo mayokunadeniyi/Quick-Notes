@@ -207,7 +207,9 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     private void simulateLongRunningWork() {
-
+        try {
+            Thread.sleep(1000);
+        }catch (Exception e){}
     }
 
     @Override
