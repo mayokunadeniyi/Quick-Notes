@@ -5,6 +5,9 @@
         android:id="@+id/backup_notes"
         android:title="Backup Notes" />
     <item
+        android:id="@+id/upload_notes"
+        android:title="Upload Notes" />
+    <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"
