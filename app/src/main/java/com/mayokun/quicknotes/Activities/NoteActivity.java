@@ -39,6 +39,7 @@ import com.mayokun.quicknotes.R;
 import com.mayokun.quicknotes.Utils.Constants;
 import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
 import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
+import com.mayokun.quicknotes.Utils.CourseEventBroadcastHelper;
 import com.mayokun.quicknotes.Utils.QuickNotesNotification;
 
 import java.net.URI;
@@ -129,6 +130,8 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         spinnerCourses.setSelection(indexOfCourse);
         noteTitle.setText(noteTitleFromDB);
         noteText.setText(noteTextFromDB);
+
+        CourseEventBroadcastHelper.sendEventBroadcast(this,courseFromDB,"Editing Note");
     }
 
     private int getIndexOfCourse(String courseFromDB) {
