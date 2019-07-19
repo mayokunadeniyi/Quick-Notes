@@ -11,11 +11,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <receiver
+            android:name=".Utils.NoteReminderReceiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
+
         <service
             android:name=".Utils.NoteUploaderJobService"
             android:enabled="true"
             android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE"></service>
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <service
             android:name=".Utils.NoteBackUpService"
             android:exported="false" />

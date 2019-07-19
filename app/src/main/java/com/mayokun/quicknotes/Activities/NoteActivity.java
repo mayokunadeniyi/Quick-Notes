@@ -1,6 +1,8 @@
 package com.mayokun.quicknotes.Activities;
 
+import android.app.AlarmManager;
 import android.app.LoaderManager;
+import android.app.PendingIntent;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.CursorLoader;
@@ -17,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,6 +43,7 @@ import com.mayokun.quicknotes.Utils.Constants;
 import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
 import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 import com.mayokun.quicknotes.Utils.CourseEventBroadcastHelper;
+import com.mayokun.quicknotes.Utils.NoteReminderReceiver;
 import com.mayokun.quicknotes.Utils.QuickNotesNotification;
 
 import java.net.URI;
@@ -333,7 +337,22 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         String notificationNoteText = noteText.getText().toString();
         String notificationNoteTitle = noteTitle.getText().toString();
         int noteId = (int) ContentUris.parseId(noteUri);
-        QuickNotesNotification.notify(this, notificationNoteText, notificationNoteTitle, noteId);
+
+        Intent intent = new Intent(this,QuickNotesNotification.class);
+        intent.putExtra(NoteReminderReceiver.EXTRA_NOTE_TITLE,notificationNoteTitle);
+        intent.putExtra(NoteReminderReceiver.EXTRA_NOTE_TEXT,notificationNoteText);
+        intent.putExtra(NoteReminderReceiver.EXTRA_NOTE_ID,noteId);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this,0,
+                intent,PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        long currentTImeInMilliSeconds = SystemClock.elapsedRealtime();
+        long ONE_HOUR = 60 * 60 * 1000;
+        long TEN_SECONDS = 10 * 1000;
+
+        long alarmTime = currentTImeInMilliSeconds + TEN_SECONDS;
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME,TEN_SECONDS,pendingIntent);
     }
 
     @Override
