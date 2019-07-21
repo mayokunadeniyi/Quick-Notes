@@ -62,4 +62,8 @@ public class Constants {
     public static final int NOTES_ROW = 3;
 
 
+    //NoteActivity URI
+    public static final String NOTE_URI = "com.mayokun.quicknotes.NOTE_URI";
+
+
 }

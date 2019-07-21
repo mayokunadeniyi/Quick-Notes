@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity
         recyclerView = (RecyclerView) findViewById(R.id.list_items);
         recyclerView.setHasFixedSize(true);
         linearLayoutManager = new LinearLayoutManager(this);
-        gridLayoutManager = new GridLayoutManager(this, 2);
+        gridLayoutManager = new GridLayoutManager(this, getResources().getInteger(R.integer.course_grid_span));
 
         noteRecyclerViewAdapter = new NoteRecyclerViewAdapter(this, null);
         courseRecyclerViewAdapter = new CourseRecyclerViewAdapter(this, courseInfoList);
@@ -148,7 +148,7 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         getLoaderManager().restartLoader(Constants.LOADER_NOTES, null, this);
-        openDrawer();
+        //openDrawer();
     }
 
     private void openDrawer() {

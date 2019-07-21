@@ -102,6 +102,8 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
             saveOriginalNoteValues();
         } else {
             restoreOriginalStateValues(savedInstanceState);
+            String stringNoteUri = savedInstanceState.getString(Constants.NOTE_URI);
+            noteUri = Uri.parse(stringNoteUri);
         }
 
         if (!mIsNewNote)
@@ -301,6 +303,8 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         outState.putString(Constants.ORIGINAL_NOTE_COURSE_ID, originalCourseID);
         outState.putString(Constants.ORIGINAL_NOTE_TITLE, originalNoteTitle);
         outState.putString(Constants.ORIGINAL_NOTE_TEXT, originalNoteText);
+
+        outState.putString(Constants.NOTE_URI,noteUri.toString());
     }
 
     @Override
@@ -429,7 +433,9 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         courseIdPosition = cursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
         noteTitlePosition = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
         noteTextPosition = cursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT);
-        cursor.moveToNext();
+
+        cursor.moveToFirst();
+
         notesQueryFinished = true;
         displayNoteWhenQueriesFinish();
     }
