@@ -76,4 +76,14 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintGuide_percent="0.5"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <com.mayokun.quicknotes.Utils.ModuleStatusView
+        android:id="@+id/moduleStatusView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="@+id/note_title"
+        app:layout_constraintStart_toStartOf="@+id/note_title"
+        app:layout_constraintTop_toBottomOf="@+id/note_title" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

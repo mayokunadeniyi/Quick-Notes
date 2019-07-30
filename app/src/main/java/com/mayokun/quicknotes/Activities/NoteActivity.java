@@ -43,6 +43,7 @@ import com.mayokun.quicknotes.Utils.Constants;
 import com.mayokun.quicknotes.Utils.Constants.CourseInfoEntry;
 import com.mayokun.quicknotes.Utils.Constants.NoteInfoEntry;
 import com.mayokun.quicknotes.Utils.CourseEventBroadcastHelper;
+import com.mayokun.quicknotes.Utils.ModuleStatusView;
 import com.mayokun.quicknotes.Utils.NoteReminderReceiver;
 import com.mayokun.quicknotes.Utils.QuickNotesNotification;
 
@@ -72,6 +73,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
     private boolean coursesQueryFinished;
     private boolean notesQueryFinished;
     private Uri noteUri;
+    private ModuleStatusView moduleStatusView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +111,19 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         if (!mIsNewNote)
             //Using a Loader Manager to query db for notes
             getLoaderManager().initLoader(Constants.LOADER_NOTES, null, this);
+
+        moduleStatusView = (ModuleStatusView) findViewById(R.id.moduleStatusView);
+        loadModuleStatusValues();
+    }
+
+    private void loadModuleStatusValues() {
+        int totalNoOfModules = 11;
+        int completedNumberOfModules = 7;
+        boolean[] moduleStatus = new boolean[totalNoOfModules];
+        for (int moduleIndex = 0; moduleIndex < completedNumberOfModules; moduleIndex++){
+            moduleStatus[moduleIndex] = true;
+        }
+        moduleStatusView.setModuleStatus(moduleStatus);
     }
 
     private void restoreOriginalStateValues(Bundle savedInstanceState) {
