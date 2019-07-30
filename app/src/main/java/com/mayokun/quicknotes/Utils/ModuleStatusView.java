@@ -5,6 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -16,15 +17,23 @@ import com.mayokun.quicknotes.R;
  * TODO: document your custom view class.
  */
 public class ModuleStatusView extends View {
+    public static final int MODULE_ARRAY_SIZE = 7;
     private String mExampleString; // TODO: use a default from R.string...
     private int mExampleColor = Color.RED; // TODO: use a default from R.color...
     private float mExampleDimension = 0; // TODO: use a default from R.dimen...
     private Drawable mExampleDrawable;
 
-    private TextPaint mTextPaint;
-    private float mTextWidth;
-    private float mTextHeight;
     private boolean[] moduleStatus;
+    private float outlineWidth;
+    private float shapeSize;
+    private float spacing;
+    private Rect[] moduleRectangles;
+    private int outlineColor;
+    private Paint paintOutline;
+    private int fillColor;
+    private Paint paintFill;
+    private float radius;
+    private int maxHorizontalModules;
 
     public ModuleStatusView(Context context) {
         super(context);
@@ -42,152 +51,100 @@ public class ModuleStatusView extends View {
     }
 
     private void init(AttributeSet attrs, int defStyle) {
+        if (isInEditMode())
+            setUpEditModeValues();
+
         // Load attributes
         final TypedArray a = getContext().obtainStyledAttributes(
                 attrs, R.styleable.ModuleStatusView, defStyle, 0);
 
-        mExampleString = a.getString(
-                R.styleable.ModuleStatusView_exampleString);
-        mExampleColor = a.getColor(
-                R.styleable.ModuleStatusView_exampleColor,
-                mExampleColor);
-        // Use getDimensionPixelSize or getDimensionPixelOffset when dealing with
-        // values that should fall on pixel boundaries.
-        mExampleDimension = a.getDimension(
-                R.styleable.ModuleStatusView_exampleDimension,
-                mExampleDimension);
-
-        if (a.hasValue(R.styleable.ModuleStatusView_exampleDrawable)) {
-            mExampleDrawable = a.getDrawable(
-                    R.styleable.ModuleStatusView_exampleDrawable);
-            mExampleDrawable.setCallback(this);
-        }
-
         a.recycle();
 
-        // Set up a default TextPaint object
-        mTextPaint = new TextPaint();
-        mTextPaint.setFlags(Paint.ANTI_ALIAS_FLAG);
-        mTextPaint.setTextAlign(Paint.Align.LEFT);
+        outlineWidth = 6f;
+        shapeSize = 144f;
+        spacing = 30f;
+        radius = (shapeSize - outlineWidth) / 2;
 
-        // Update TextPaint and text measurements from attributes
-        invalidateTextPaintAndMeasurements();
+        outlineColor = Color.BLACK;
+        paintOutline = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintOutline.setStyle(Paint.Style.STROKE);
+        paintOutline.setStrokeWidth(outlineWidth);
+        paintOutline.setColor(outlineColor);
+
+        fillColor = getContext().getResources().getColor(R.color.orange);
+        paintFill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintFill.setStyle(Paint.Style.FILL);
+        paintFill.setColor(fillColor);
+
     }
 
-    private void invalidateTextPaintAndMeasurements() {
-        mTextPaint.setTextSize(mExampleDimension);
-        mTextPaint.setColor(mExampleColor);
-        mTextWidth = mTextPaint.measureText(mExampleString);
+    private void setUpEditModeValues() {
+        boolean[] exampleModuleValues = new boolean[MODULE_ARRAY_SIZE];
+        int middle = MODULE_ARRAY_SIZE/2;
+        for (int i = 0; i < middle; i++) {
+            exampleModuleValues[i] = true;
+        }
+        setModuleStatus(exampleModuleValues);
+    }
 
-        Paint.FontMetrics fontMetrics = mTextPaint.getFontMetrics();
-        mTextHeight = fontMetrics.bottom;
+    private void setUpModuleRectangles(int width) {
+        int availableWidth = width - getPaddingLeft() - getPaddingRight();
+        int horizontalModulesThatCanFit = (int) (availableWidth / (shapeSize + spacing));
+        int mMaxHorizontalModules = Math.min(horizontalModulesThatCanFit,moduleStatus.length);
+
+        moduleRectangles = new Rect[moduleStatus.length];
+        for (int moduleIndex = 0; moduleIndex<moduleRectangles.length; moduleIndex++){
+            int column = moduleIndex % mMaxHorizontalModules;
+            int row = moduleIndex / mMaxHorizontalModules;
+            int x = getPaddingLeft () + (int) (column * (shapeSize + spacing));
+            int y = getPaddingTop() + (int) (row * (shapeSize + spacing));
+            moduleRectangles[moduleIndex] = new Rect(x,y,x + (int) shapeSize, y + (int) shapeSize);
+        }
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        setUpModuleRectangles(w);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        // TODO: consider storing these as member variables to reduce
-        // allocations per draw cycle.
-        int paddingLeft = getPaddingLeft();
-        int paddingTop = getPaddingTop();
-        int paddingRight = getPaddingRight();
-        int paddingBottom = getPaddingBottom();
+        for (int moduleIndex = 0; moduleIndex<moduleRectangles.length; moduleIndex++){
+            float x = moduleRectangles[moduleIndex].centerX();
+            float y = moduleRectangles[moduleIndex].centerY();
 
-        int contentWidth = getWidth() - paddingLeft - paddingRight;
-        int contentHeight = getHeight() - paddingTop - paddingBottom;
+            if (moduleStatus[moduleIndex])
+                canvas.drawCircle(x,y, radius,paintFill);
 
-        // Draw the text.
-        canvas.drawText(mExampleString,
-                paddingLeft + (contentWidth - mTextWidth) / 2,
-                paddingTop + (contentHeight + mTextHeight) / 2,
-                mTextPaint);
-
-        // Draw the example drawable on top of the text.
-        if (mExampleDrawable != null) {
-            mExampleDrawable.setBounds(paddingLeft, paddingTop,
-                    paddingLeft + contentWidth, paddingTop + contentHeight);
-            mExampleDrawable.draw(canvas);
+            canvas.drawCircle(x,y, radius,paintOutline);
         }
+
     }
 
-    /**
-     * Gets the example string attribute value.
-     *
-     * @return The example string attribute value.
-     */
-    public String getExampleString() {
-        return mExampleString;
-    }
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int desiredWidth = 0;
+        int desiredHeight = 0;
 
-    /**
-     * Sets the view's example string attribute value. In the example view, this string
-     * is the text to draw.
-     *
-     * @param exampleString The example string attribute value to use.
-     */
-    public void setExampleString(String exampleString) {
-        mExampleString = exampleString;
-        invalidateTextPaintAndMeasurements();
-    }
+        int specWidth = MeasureSpec.getSize(widthMeasureSpec);
+        int availableWidth = specWidth - getPaddingLeft() - getPaddingRight();
+        int horizontalModulesThatCanFit = (int) (availableWidth / (shapeSize + spacing));
+        maxHorizontalModules = Math.min(horizontalModulesThatCanFit,moduleStatus.length);
 
-    /**
-     * Gets the example color attribute value.
-     *
-     * @return The example color attribute value.
-     */
-    public int getExampleColor() {
-        return mExampleColor;
-    }
+        desiredWidth = (int)((maxHorizontalModules * (shapeSize + spacing)) - spacing);
+        desiredWidth += getPaddingLeft() + getPaddingRight();
 
-    /**
-     * Sets the view's example color attribute value. In the example view, this color
-     * is the font color.
-     *
-     * @param exampleColor The example color attribute value to use.
-     */
-    public void setExampleColor(int exampleColor) {
-        mExampleColor = exampleColor;
-        invalidateTextPaintAndMeasurements();
-    }
+        int rows = ((moduleStatus.length - 1) / maxHorizontalModules) + 1;
 
-    /**
-     * Gets the example dimension attribute value.
-     *
-     * @return The example dimension attribute value.
-     */
-    public float getExampleDimension() {
-        return mExampleDimension;
-    }
+        desiredHeight = (int) ((rows * (shapeSize + spacing)) - spacing);
+        desiredHeight += getPaddingBottom() + getPaddingTop();
 
-    /**
-     * Sets the view's example dimension attribute value. In the example view, this dimension
-     * is the font size.
-     *
-     * @param exampleDimension The example dimension attribute value to use.
-     */
-    public void setExampleDimension(float exampleDimension) {
-        mExampleDimension = exampleDimension;
-        invalidateTextPaintAndMeasurements();
-    }
+        int width = resolveSizeAndState(desiredWidth,widthMeasureSpec,0);
+        int height = resolveSizeAndState(desiredHeight,heightMeasureSpec,0);
 
-    /**
-     * Gets the example drawable attribute value.
-     *
-     * @return The example drawable attribute value.
-     */
-    public Drawable getExampleDrawable() {
-        return mExampleDrawable;
-    }
-
-    /**
-     * Sets the view's example drawable attribute value. In the example view, this drawable is
-     * drawn above the text.
-     *
-     * @param exampleDrawable The example drawable attribute value to use.
-     */
-    public void setExampleDrawable(Drawable exampleDrawable) {
-        mExampleDrawable = exampleDrawable;
+        setMeasuredDimension(width,height);
     }
 
     public boolean[] getModuleStatus() {
