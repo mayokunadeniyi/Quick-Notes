@@ -1,5 +1,5 @@
 # Quick Notes
-Quick Notes is a mobile application built for the Android platform to help you take down notes in real time and also in share them. This project was built from the [Google Associate Android Developer's course on PluralSight](https://app.pluralsight.com/paths/skill/google-android-associate-developer-aad) in preparation for the [Associate Android Developer Certification](https://developers.google.com/training/certification/associate-android-developer/#exam-content) by Google.
+Quick Notes is a mobile application built for the Android platform to help you take down notes in real time and also in share them. This project was built in preparation for the [Associate Android Developer Certification](https://developers.google.com/training/certification/associate-android-developer/#exam-content) by Google.
 
 ## Project Overview
 In building this application, I was able to:
